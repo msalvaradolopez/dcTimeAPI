@@ -30,6 +30,14 @@ create table dcSURTIDOR (
 	CONSTRAINT PK_dcSURTIDOR PRIMARY KEY (empID)
 )
 
+create table dcBANNER (
+	bannerID NVARCHAR(50) NOT NULL,
+	texto NVARCHAR(200) NOT NULL,
+	CONSTRAINT PK_dcBANNER PRIMARY KEY (bannerID)
+)
+
+
+
 -- Name : nvarchar , 200
 -- Socio : nvarchar, 200
 -- SlpName : nvarchar , 310

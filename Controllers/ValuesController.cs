@@ -49,5 +49,14 @@ namespace dcTimeAPI.Controllers
             conexiones lConexiones = new conexiones();
             return lConexiones.GetSurtidores();
         }
+
+        [AcceptVerbs("POST")]
+        [HttpPost()]
+        [Route("getBanners")]
+        public IEnumerable<object> getBanners([FromBody] IFiltros pFiltros)
+        {
+            conexiones lConexiones = new conexiones();
+            return lConexiones.getBanners();
+        }
     }
 }

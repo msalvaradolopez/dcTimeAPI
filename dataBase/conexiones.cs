@@ -131,5 +131,34 @@ namespace dcTimeAPI.dataBase
                 return "Surtimiento Cerrado.";
             }
         }
+
+        public List<bannerDB> getBanners()
+        {
+
+            List<bannerDB> lBannersDB = new List<bannerDB>();
+
+            using (SqlConnection conn = new SqlConnection(strConn))
+            {
+                SqlCommand sql = new SqlCommand("select * from dcBANNER", conn);
+
+                sql.CommandType = CommandType.Text;
+
+                conn.Open();
+                SqlDataReader resultado = sql.ExecuteReader();
+
+                while (resultado.Read())
+                {
+                    string lBannerID = resultado["bannerID"] as string;
+                    string lTexto = resultado["texto"] as string;
+
+                    lBannersDB.Add(new bannerDB(lBannerID, lTexto));
+                }
+
+                resultado.Close();
+            }
+
+            return lBannersDB;
+        }
+
     }
 }
