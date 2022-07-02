@@ -35,8 +35,13 @@ create table dcBANNER (
 	texto NVARCHAR(200) NOT NULL,
 	CONSTRAINT PK_dcBANNER PRIMARY KEY (bannerID)
 )
-
-
+select LEN(texto) from dcBANNER
+delete dcBANNER
+-- ' Estimado cliente: Le informamos que el surtido de CABLES por metro requerimos un tiempo para elaborar el corte (10 - 15 min dependiendo del calibre), agradecemos su comprención.'
+INSERT INTO dcBANNER
+	select 'TEXTO 1', ' Estimado cliente: Le informamos que el surtido de CABLES por metro requerimos un tiempo para elaborar el corte (10 - 15 min dependiendo del calibre), agradecemos su comprención.'
+	UNION ALL
+	SELECT 'TEXTO 2', ' Eléctrico ofreciéndole el mejor servicio y ateción a nuestros clientes.' 
 
 -- Name : nvarchar , 200
 -- Socio : nvarchar, 200

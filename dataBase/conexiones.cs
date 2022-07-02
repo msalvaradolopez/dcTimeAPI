@@ -160,5 +160,41 @@ namespace dcTimeAPI.dataBase
             return lBannersDB;
         }
 
+        public List<bannerDB> getConPorDias(IFiltros filtros)
+        {
+
+            List<conPorDias> lconPorDias = new List<conPorDias>();
+
+            using (SqlConnection conn = new SqlConnection(strConn))
+            {
+                SqlCommand sql = new SqlCommand("SELECT fechaOrigen = CAST(fecha AS DATE) ,porSurtir = AVG( DATEDIFF(mi, fecha, fechaSurtiendo)), surtiendo = AVG(DATEDIFF(MI, fechaSurtiendo, fechaCerrado)) " +
+                                                    " FROM dcPEDIDOS " +
+                                                    " WHERE estatus > 1 " +
+                                                    " AND DATEPART(YEAR, fecha) = @ANNIO " +
+                                                    " AND DATEPART(MONTH, fecha) = @MES " +
+                                                    " GROUP BY CAST(fecha AS DATE)", conn);
+
+                sql.CommandType = CommandType.Text;
+                sql.Parameters.AddWithValue("@ANNIO", filtros.annio);
+                sql.Parameters.AddWithValue("@MES", filtros.mes);
+
+                conn.Open();
+                SqlDataReader resultado = sql.ExecuteReader();
+
+                while (resultado.Read())
+                {
+                    string lfechaOrigen = resultado["fechaOrigen"] as string;
+                    string lporsurtir = resultado["porSurtir"] as string;
+                    string lsurtiendo = resultado["surtiendo"] as string;
+
+                    lconPorDias.Add(new conPorDias(lfechaOrigen, lporsurtir, lsurtiendo));
+                }
+
+                resultado.Close();
+            }
+
+            return lBannersDB;
+        }
+
     }
 }
