@@ -76,3 +76,44 @@ as
 			AND NOT EXISTS (SELECT 1 FROM dcSURTIDOR T2 WHERE T2.empID = T1.empID)
 
 GO
+
+--******************* CONSULTAS GENERALES
+
+USE dbaux
+GO
+
+UPDATE dcPEDIDOS
+SET fechaSurtiendo = '20220629 08:40:00'
+WHERE folio = 'ALTPL4PE119795'
+
+SELECT porSurtiendo = DATEDIFF(mi, fecha, fechaSurtiendo), porSurtiendo = DATEDIFF(MI, fechaSurtiendo, fechaCerrado), * 
+FROM dcPEDIDOS 
+WHERE estatus > 1
+
+DECLARE @ANNIO int = 2022,
+		@MES int = 6
+SELECT fechaOrigen = CAST(fecha AS DATE) ,porSurtir = AVG( DATEDIFF(mi, fecha, fechaSurtiendo)), surtiendo = AVG(DATEDIFF(MI, fechaSurtiendo, fechaCerrado))
+FROM dcPEDIDOS 
+WHERE estatus > 1
+		AND DATEPART(YEAR, fecha ) = @ANNIO
+		AND DATEPART(MONTH, fecha ) =  @MES
+GROUP BY CAST(fecha AS DATE)
+
+DECLARE @ANNIO int = 2022,
+		@MES int = 7
+
+SELECT surtidor = dcSURTIDOR.firstName, porSurtir = AVG( DATEDIFF(mi, fecha, fechaSurtiendo)), surtiendo = AVG(DATEDIFF(MI, fechaSurtiendo, fechaCerrado))
+FROM dcPEDIDOS INNER JOIN dcSURTIDOR ON dcSURTIDOR.empID = dcPEDIDOS.empID
+WHERE dcPEDIDOS.estatus > 1
+		AND DATEPART(YEAR, fecha ) = @ANNIO
+		AND DATEPART(MONTH, fecha ) =  @MES
+GROUP BY dcSURTIDOR.firstName
+
+SELECT surtidor = dcSURTIDOR.firstName, porSurtir = ISNULL(AVG( DATEDIFF(mi, fecha, fechaSurtiendo)), 0), surtiendo = ISNULL(AVG(DATEDIFF(MI, fechaSurtiendo, fechaCerrado)), 0)
+                                                    FROM dcPEDIDOS INNER JOIN dcSURTIDOR ON dcSURTIDOR.empID = dcPEDIDOS.empID 
+                                                    WHERE dcPEDIDOS.estatus > 1 
+                                                    AND DATEPART(YEAR, fecha) = 2022
+                                                    AND DATEPART(MONTH, fecha) = 6
+                                                    GROUP BY dcSURTIDOR.firstName
+
+SELECT * FROM dcSURTIDOR

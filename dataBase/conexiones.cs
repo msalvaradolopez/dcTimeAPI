@@ -160,14 +160,14 @@ namespace dcTimeAPI.dataBase
             return lBannersDB;
         }
 
-        public List<bannerDB> getConPorDias(IFiltros filtros)
+        public List<conPorDias> getConPorDias(IFiltros filtros)
         {
 
             List<conPorDias> lconPorDias = new List<conPorDias>();
 
             using (SqlConnection conn = new SqlConnection(strConn))
             {
-                SqlCommand sql = new SqlCommand("SELECT fechaOrigen = CAST(fecha AS DATE) ,porSurtir = AVG( DATEDIFF(mi, fecha, fechaSurtiendo)), surtiendo = AVG(DATEDIFF(MI, fechaSurtiendo, fechaCerrado)) " +
+                SqlCommand sql = new SqlCommand("SELECT fechaOrigen = CAST(fecha AS DATE) ,porSurtir = ISNULL(AVG( DATEDIFF(mi, fecha, fechaSurtiendo)), 0), surtiendo = ISNULL(AVG(DATEDIFF(MI, fechaSurtiendo, fechaCerrado)), 0) " +
                                                     " FROM dcPEDIDOS " +
                                                     " WHERE estatus > 1 " +
                                                     " AND DATEPART(YEAR, fecha) = @ANNIO " +
@@ -183,9 +183,9 @@ namespace dcTimeAPI.dataBase
 
                 while (resultado.Read())
                 {
-                    string lfechaOrigen = resultado["fechaOrigen"] as string;
-                    string lporsurtir = resultado["porSurtir"] as string;
-                    string lsurtiendo = resultado["surtiendo"] as string;
+                    string lfechaOrigen = Convert.ToDateTime(resultado["fechaOrigen"]).ToString("yyyy/MM/dd HH:mm");
+                    string lporsurtir = Convert.ToInt16(resultado["porSurtir"]).ToString();
+                    string lsurtiendo = Convert.ToInt16(resultado["surtiendo"]).ToString();
 
                     lconPorDias.Add(new conPorDias(lfechaOrigen, lporsurtir, lsurtiendo));
                 }
@@ -193,7 +193,100 @@ namespace dcTimeAPI.dataBase
                 resultado.Close();
             }
 
-            return lBannersDB;
+            return lconPorDias;
+        }
+
+        public List<conPorSurtidor> getConPorSurtidor(IFiltros filtros)
+        {
+
+            List<conPorSurtidor> lconPorSurtidor = new List<conPorSurtidor>();
+
+            using (SqlConnection conn = new SqlConnection(strConn))
+            {
+                SqlCommand sql = new SqlCommand("SELECT empID = MAX(dcPEDIDOS.empID) ,surtidor = dcSURTIDOR.firstName, porSurtir = ISNULL(AVG( DATEDIFF(mi, fecha, fechaSurtiendo)), 0), surtiendo = ISNULL(AVG(DATEDIFF(MI, fechaSurtiendo, fechaCerrado)), 0) " +
+                                                    " FROM dcPEDIDOS INNER JOIN dcSURTIDOR ON dcSURTIDOR.empID = dcPEDIDOS.empID " +
+                                                    " WHERE dcPEDIDOS.estatus > 1 " +
+                                                    " AND DATEPART(YEAR, fecha) = @ANNIO " +
+                                                    " AND DATEPART(MONTH, fecha) = @MES " +
+                                                    " GROUP BY dcSURTIDOR.firstName", conn);
+
+                sql.CommandType = CommandType.Text;
+                sql.Parameters.AddWithValue("@ANNIO", filtros.annio);
+                sql.Parameters.AddWithValue("@MES", filtros.mes);
+
+                conn.Open();
+                SqlDataReader resultado = sql.ExecuteReader();
+
+                while (resultado.Read())
+                {
+                    string lSurtidor = resultado["surtidor"] as string;
+                    string lporsurtir = Convert.ToInt16(resultado["porSurtir"]).ToString();
+                    string lsurtiendo = Convert.ToInt16(resultado["surtiendo"]).ToString();
+                    string lempID = Convert.ToInt16(resultado["empID"]).ToString();
+
+                    lconPorSurtidor.Add(new conPorSurtidor(lSurtidor, lporsurtir, lsurtiendo, lempID));
+                }
+
+                resultado.Close();
+            }
+
+            return lconPorSurtidor;
+        }
+
+        public List<conGenerales> getConGeneral(IFiltros filtros)
+        {
+
+            List<conGenerales> lconGenerales = new List<conGenerales>();
+
+            using (SqlConnection conn = new SqlConnection(strConn))
+            {
+                SqlCommand sql = new SqlCommand("SELECT dcPEDIDOS.folio, " +
+                                                "statusText = CASE WHEN dcPEDIDOS.estatus = '2' THEN 'Surtiendo' " +
+                                                                  " WHEN dcPEDIDOS.estatus = '3' THEN 'Cerrado' END, " +
+                                                " dcPEDIDOS.fecha, " +
+                                                " porSurtir = ISNULL(DATEDIFF(mi, fecha, fechaSurtiendo), 0), " +
+                                                " dcPEDIDOS.fechaSurtiendo, " +
+                                                " surtiendo = ISNULL(DATEDIFF(mi, fechaSurtiendo, fechaCerrado), 0), " +
+                                                " dcPEDIDOS.fechaCerrado, " +
+                                                " dcSURTIDOR.firstName, " +
+                                                " dcPEDIDOS.socio, " +
+                                                " dcPEDIDOS.SlpName " +
+                                                " FROM dcPEDIDOS INNER JOIN dcSURTIDOR ON dcSURTIDOR.empID = dcPEDIDOS.empID " +
+                                                " WHERE dcPEDIDOS.estatus > 1 " +
+                                                " AND DATEPART(YEAR, fecha) = @ANNIO " +
+                                                " AND DATEPART(MONTH, fecha) = @MES " +
+                                                " AND (DATEPART(DAY, fecha) = @DIA OR @DIA = 0)" +
+                                                " AND (dcPEDIDOS.empID = @empID OR @empID = 0) ", conn);
+
+                sql.CommandType = CommandType.Text;
+                sql.Parameters.AddWithValue("@ANNIO", filtros.annio);
+                sql.Parameters.AddWithValue("@MES", filtros.mes);
+                sql.Parameters.AddWithValue("@DIA", filtros.dia);
+                sql.Parameters.AddWithValue("@empID", filtros.empID);
+
+                conn.Open();
+                SqlDataReader resultado = sql.ExecuteReader();
+
+                while (resultado.Read())
+                {
+                    string lfolio = resultado["folio"] as string;
+                    string lstatusText = resultado["statusText"] as string;
+                    string lfecha = Convert.ToDateTime(resultado["fecha"]).ToString("yyyy/MM/dd HH:mm");
+                    string lporSurtir = Convert.ToInt16(resultado["porSurtir"]).ToString();
+                    string lfechaSurtiendo = resultado["fechaSurtiendo"] == DBNull.Value ? null : Convert.ToDateTime(resultado["fechaSurtiendo"]).ToString("yyyy/MM/dd HH:mm");
+                    string lsurtiendo = Convert.ToInt16(resultado["surtiendo"]).ToString();
+                    string lfechaCerrado = resultado["fechaCerrado"] == DBNull.Value ? null : Convert.ToDateTime(resultado["fechaCerrado"]).ToString("yyyy/MM/dd HH:mm");
+                    string lfirstName = resultado["firstName"] as string;
+                    string lsocio = resultado["socio"] as string;
+                    string lSlpName = resultado["SlpName"] as string;
+
+                    lconGenerales.Add(new conGenerales(lfolio, lstatusText, lfecha, lporSurtir, lfechaSurtiendo, lsurtiendo, lfechaCerrado, lfirstName, lsocio, lSlpName));
+                }
+
+                resultado.Close();
+            }
+
+            return lconGenerales;
         }
 
     }

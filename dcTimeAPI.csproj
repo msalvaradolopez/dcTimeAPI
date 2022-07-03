@@ -168,7 +168,9 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Models\bannerDB.cs" />
+    <Compile Include="Models\conGenerales.cs" />
     <Compile Include="Models\conPorDias.cs" />
+    <Compile Include="Models\conPorSurtidor.cs" />
     <Compile Include="Models\IFiltros.cs" />
     <Compile Include="Models\pedidosDB.cs" />
     <Compile Include="Models\surtidoresDB.cs" />

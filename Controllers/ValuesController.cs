@@ -58,5 +58,32 @@ namespace dcTimeAPI.Controllers
             conexiones lConexiones = new conexiones();
             return lConexiones.getBanners();
         }
+
+        [AcceptVerbs("POST")]
+        [HttpPost()]
+        [Route("getConPorDias")]
+        public IEnumerable<object> getConPorDias([FromBody] IFiltros pFiltros)
+        {
+            conexiones lConexiones = new conexiones();
+            return lConexiones.getConPorDias(pFiltros);
+        }
+
+        [AcceptVerbs("POST")]
+        [HttpPost()]
+        [Route("getConPorSurtidor")]
+        public IEnumerable<object> getConPorSurtidor([FromBody] IFiltros pFiltros)
+        {
+            conexiones lConexiones = new conexiones();
+            return lConexiones.getConPorSurtidor(pFiltros);
+        }
+
+        [AcceptVerbs("POST")]
+        [HttpPost()]
+        [Route("getConGeneral")]
+        public IEnumerable<object> getConGeneral([FromBody] IFiltros pFiltros)
+        {
+            conexiones lConexiones = new conexiones();
+            return lConexiones.getConGeneral(pFiltros);
+        }
     }
 }

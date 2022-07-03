@@ -12,5 +12,6 @@ namespace dcTimeAPI.Models
         public string empID { get; set; }
         public int annio { get; set; }
         public int mes { get; set; }
+        public int dia { get; set; }
     }
 }
