@@ -61,6 +61,33 @@ namespace dcTimeAPI.Controllers
 
         [AcceptVerbs("POST")]
         [HttpPost()]
+        [Route("insBanner")]
+        public string insBanner([FromBody] IFiltros pFiltros)
+        {
+            conexiones lConexiones = new conexiones();
+            return lConexiones.insBanner(pFiltros);
+        }
+
+        [AcceptVerbs("POST")]
+        [HttpPost()]
+        [Route("setBanner")]
+        public string setBanner([FromBody] IFiltros pFiltros)
+        {
+            conexiones lConexiones = new conexiones();
+            return lConexiones.setBanner(pFiltros);
+        }
+
+        [AcceptVerbs("POST")]
+        [HttpPost()]
+        [Route("delBanner")]
+        public string delBanner([FromBody] IFiltros pFiltros)
+        {
+            conexiones lConexiones = new conexiones();
+            return lConexiones.delBanner(pFiltros);
+        }
+
+        [AcceptVerbs("POST")]
+        [HttpPost()]
         [Route("getConPorDias")]
         public IEnumerable<object> getConPorDias([FromBody] IFiltros pFiltros)
         {
@@ -84,6 +111,15 @@ namespace dcTimeAPI.Controllers
         {
             conexiones lConexiones = new conexiones();
             return lConexiones.getConGeneral(pFiltros);
+        }
+
+        [AcceptVerbs("POST")]
+        [HttpPost()]
+        [Route("setFoto")]
+        public string setFoto([FromBody] IFiltros pFiltros)
+        {
+            conexiones lConexiones = new conexiones();
+            return lConexiones.setFoto(pFiltros);
         }
     }
 }

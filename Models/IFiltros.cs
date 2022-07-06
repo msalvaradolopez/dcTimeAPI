@@ -13,5 +13,9 @@ namespace dcTimeAPI.Models
         public int annio { get; set; }
         public int mes { get; set; }
         public int dia { get; set; }
+        public string bannerID { get; set; }
+        public string texto { get; set; }
+        public string Foto { get; set; }
+
     }
 }

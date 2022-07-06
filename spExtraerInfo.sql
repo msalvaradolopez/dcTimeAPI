@@ -39,7 +39,7 @@ select LEN(texto) from dcBANNER
 delete dcBANNER
 -- ' Estimado cliente: Le informamos que el surtido de CABLES por metro requerimos un tiempo para elaborar el corte (10 - 15 min dependiendo del calibre), agradecemos su comprención.'
 INSERT INTO dcBANNER
-	select 'TEXTO 1', ' Estimado cliente: Le informamos que el surtido de CABLES por metro requerimos un tiempo para elaborar el corte (10 - 15 min dependiendo del calibre), agradecemos su comprención.'
+	select 'TEXTO 1', ' Estimado cliente: Le informamos que el surtido de CABLES por metro requerimos un tiempo para elaborar el corte (10 - 15 min dependiendo del calibre), agradecemos su comprensión.'
 	UNION ALL
 	SELECT 'TEXTO 2', ' Eléctrico ofreciéndole el mejor servicio y ateción a nuestros clientes.' 
 
@@ -116,4 +116,26 @@ SELECT surtidor = dcSURTIDOR.firstName, porSurtir = ISNULL(AVG( DATEDIFF(mi, fec
                                                     AND DATEPART(MONTH, fecha) = 6
                                                     GROUP BY dcSURTIDOR.firstName
 
-SELECT * FROM dcSURTIDOR
+SELECT dcPEDIDOS.folio,
+		statusText = CASE WHEN dcPEDIDOS.estatus = '2' THEN 'Surtiendo'
+						  WHEN dcPEDIDOS.estatus = '3' THEN 'Cerrado' END,
+		dcPEDIDOS.fecha,
+		porSurtir = ISNULL(DATEDIFF(mi, fecha, fechaSurtiendo), 0),
+		dcPEDIDOS.fechaSurtiendo,
+		surtiendo = ISNULL(DATEDIFF(mi, fechaSurtiendo, fechaCerrado), 0),
+		dcPEDIDOS.fechaCerrado,
+		dcSURTIDOR.firstName,
+		dcPEDIDOS.socio, 
+		dcPEDIDOS.SlpName
+FROM dcPEDIDOS INNER JOIN dcSURTIDOR ON dcSURTIDOR.empID = dcPEDIDOS.empID 
+WHERE dcPEDIDOS.estatus > 1 
+        AND DATEPART(YEAR, fecha) = 2022
+        AND DATEPART(MONTH, fecha) = 6
+
+
+SELECT empID = MAX(dcPEDIDOS.empID) ,surtidor = dcSURTIDOR.firstName, porSurtir = ISNULL(AVG( DATEDIFF(mi, fecha, fechaSurtiendo)), 0), surtiendo = ISNULL(AVG(DATEDIFF(MI, fechaSurtiendo, fechaCerrado)), 0) 
+FROM dcPEDIDOS INNER JOIN dcSURTIDOR ON dcSURTIDOR.empID = dcPEDIDOS.empID 
+WHERE dcPEDIDOS.estatus > 1
+AND DATEPART(YEAR, fecha) = 2022
+AND DATEPART(MONTH, fecha) = 6
+GROUP BY dcSURTIDOR.firstName

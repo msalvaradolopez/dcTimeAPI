@@ -160,6 +160,65 @@ namespace dcTimeAPI.dataBase
             return lBannersDB;
         }
 
+        public string insBanner(IFiltros filtros)
+        {
+
+            List<bannerDB> lbannerDB = new List<bannerDB>();
+
+            using (SqlConnection conn = new SqlConnection(strConn))
+            {
+                SqlCommand sql = new SqlCommand("INSERT INTO dcBANNER(bannerID, texto) " +
+                                                " VALUES(@bannerID, @texto) ", conn);
+
+                sql.CommandType = CommandType.Text;
+                sql.Parameters.AddWithValue("@bannerID", filtros.bannerID);
+                sql.Parameters.AddWithValue("@texto", filtros.texto);
+
+                conn.Open();
+                sql.ExecuteNonQuery();
+                return "Texto ingresado.";
+            }
+        }
+
+        public string setBanner(IFiltros filtros)
+        {
+
+            List<bannerDB> lbannerDB = new List<bannerDB>();
+
+            using (SqlConnection conn = new SqlConnection(strConn))
+            {
+                SqlCommand sql = new SqlCommand("update dcBANNER set texto= @texto " +
+                                                "where bannerID = @bannerID ", conn);
+
+                sql.CommandType = CommandType.Text;
+                sql.Parameters.AddWithValue("@bannerID", filtros.bannerID);
+                sql.Parameters.AddWithValue("@texto", filtros.texto);
+
+                conn.Open();
+                sql.ExecuteNonQuery();
+                return "Texto actualizado.";
+            }
+        }
+
+        public string delBanner(IFiltros filtros)
+        {
+
+            List<bannerDB> lbannerDB = new List<bannerDB>();
+
+            using (SqlConnection conn = new SqlConnection(strConn))
+            {
+                SqlCommand sql = new SqlCommand("delete dcBANNER " +
+                                                "where bannerID = @bannerID ", conn);
+
+                sql.CommandType = CommandType.Text;
+                sql.Parameters.AddWithValue("@bannerID", filtros.bannerID);
+
+                conn.Open();
+                sql.ExecuteNonQuery();
+                return "Texto eliminado.";
+            }
+        }
+
         public List<conPorDias> getConPorDias(IFiltros filtros)
         {
 
@@ -287,6 +346,26 @@ namespace dcTimeAPI.dataBase
             }
 
             return lconGenerales;
+        }
+
+        public string setFoto(IFiltros filtros)
+        {
+
+            List<bannerDB> lbannerDB = new List<bannerDB>();
+
+            using (SqlConnection conn = new SqlConnection(strConn))
+            {
+                SqlCommand sql = new SqlCommand("update dcSURTIDOR set foto = @foto " +
+                                                "where empID = @empID ", conn);
+
+                sql.CommandType = CommandType.Text;
+                sql.Parameters.AddWithValue("@foto", filtros.Foto);
+                sql.Parameters.AddWithValue("@empID", filtros.empID);
+
+                conn.Open();
+                sql.ExecuteNonQuery();
+                return "Foto actualizado.";
+            }
         }
 
     }
