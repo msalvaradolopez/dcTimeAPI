@@ -172,6 +172,8 @@
     <Compile Include="Models\conPorDias.cs" />
     <Compile Include="Models\conPorSurtidor.cs" />
     <Compile Include="Models\IFiltros.cs" />
+    <Compile Include="Models\IVideo.cs" />
+    <Compile Include="Models\paramDB.cs" />
     <Compile Include="Models\pedidosDB.cs" />
     <Compile Include="Models\surtidoresDB.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -22,8 +22,8 @@ namespace dcTimeAPI.dataBase
             List<pedidosDB> lPedidosDB = new List<pedidosDB>();
 
             using (SqlConnection conn = new SqlConnection(strConn)) {
-                SqlCommand sql = new SqlCommand("select *,t2.firstName from dcPEDIDOS t1 " +
-                    "                               left join dcSURTIDOR t2 on t2.empID = t1.empID " +
+                SqlCommand sql = new SqlCommand("select *,t2.firstName from dcPEDIDOS t1  WITH (NOLOCK) " +
+                    "                               left join dcSURTIDOR t2  WITH (NOLOCK) on t2.empID = t1.empID " +
                     "                           where CONVERT(VARCHAR(10),fecha, 112) = CONVERT(VARCHAR(10), @fechaActual, 112)", conn);
 
                 sql.CommandType = CommandType.Text;
@@ -84,7 +84,7 @@ namespace dcTimeAPI.dataBase
 
             using (SqlConnection conn = new SqlConnection(strConn))
             {
-                SqlCommand sql = new SqlCommand("select * from dcSURTIDOR where estatus = 'A'", conn);
+                SqlCommand sql = new SqlCommand("select * from dcSURTIDOR  WITH (NOLOCK) where estatus = 'A'", conn);
 
                 sql.CommandType = CommandType.Text;
 
@@ -139,7 +139,7 @@ namespace dcTimeAPI.dataBase
 
             using (SqlConnection conn = new SqlConnection(strConn))
             {
-                SqlCommand sql = new SqlCommand("select * from dcBANNER", conn);
+                SqlCommand sql = new SqlCommand("select * from dcBANNER  WITH (NOLOCK) ", conn);
 
                 sql.CommandType = CommandType.Text;
 
@@ -227,7 +227,7 @@ namespace dcTimeAPI.dataBase
             using (SqlConnection conn = new SqlConnection(strConn))
             {
                 SqlCommand sql = new SqlCommand("SELECT fechaOrigen = CAST(fecha AS DATE) ,porSurtir = ISNULL(AVG( DATEDIFF(mi, fecha, fechaSurtiendo)), 0), surtiendo = ISNULL(AVG(DATEDIFF(MI, fechaSurtiendo, fechaCerrado)), 0) " +
-                                                    " FROM dcPEDIDOS " +
+                                                    " FROM dcPEDIDOS  WITH (NOLOCK) " +
                                                     " WHERE estatus > 1 " +
                                                     " AND DATEPART(YEAR, fecha) = @ANNIO " +
                                                     " AND DATEPART(MONTH, fecha) = @MES " +
@@ -263,7 +263,7 @@ namespace dcTimeAPI.dataBase
             using (SqlConnection conn = new SqlConnection(strConn))
             {
                 SqlCommand sql = new SqlCommand("SELECT empID = MAX(dcPEDIDOS.empID) ,surtidor = dcSURTIDOR.firstName, porSurtir = ISNULL(AVG( DATEDIFF(mi, fecha, fechaSurtiendo)), 0), surtiendo = ISNULL(AVG(DATEDIFF(MI, fechaSurtiendo, fechaCerrado)), 0) " +
-                                                    " FROM dcPEDIDOS INNER JOIN dcSURTIDOR ON dcSURTIDOR.empID = dcPEDIDOS.empID " +
+                                                    " FROM dcPEDIDOS  WITH (NOLOCK) INNER JOIN dcSURTIDOR  WITH (NOLOCK) ON dcSURTIDOR.empID = dcPEDIDOS.empID " +
                                                     " WHERE dcPEDIDOS.estatus > 1 " +
                                                     " AND DATEPART(YEAR, fecha) = @ANNIO " +
                                                     " AND DATEPART(MONTH, fecha) = @MES " +
@@ -310,7 +310,7 @@ namespace dcTimeAPI.dataBase
                                                 " dcSURTIDOR.firstName, " +
                                                 " dcPEDIDOS.socio, " +
                                                 " dcPEDIDOS.SlpName " +
-                                                " FROM dcPEDIDOS INNER JOIN dcSURTIDOR ON dcSURTIDOR.empID = dcPEDIDOS.empID " +
+                                                " FROM dcPEDIDOS  WITH (NOLOCK) INNER JOIN dcSURTIDOR  WITH (NOLOCK) ON dcSURTIDOR.empID = dcPEDIDOS.empID " +
                                                 " WHERE dcPEDIDOS.estatus > 1 " +
                                                 " AND DATEPART(YEAR, fecha) = @ANNIO " +
                                                 " AND DATEPART(MONTH, fecha) = @MES " +
@@ -368,5 +368,49 @@ namespace dcTimeAPI.dataBase
             }
         }
 
+        public string getParam()
+        {
+            string lstrVideo = "";
+            List<paramDB> lParamDB = new List<paramDB>();
+
+            using (SqlConnection conn = new SqlConnection(strConn))
+            {
+                SqlCommand sql = new SqlCommand("select * from dcPARAM  WITH (NOLOCK)", conn);
+
+                sql.CommandType = CommandType.Text;
+
+                conn.Open();
+                SqlDataReader resultado = sql.ExecuteReader();
+
+                while (resultado.Read())
+                {
+                    string lVideo = resultado["video"] as string;
+
+                    lstrVideo = lVideo;
+                }
+
+                resultado.Close();
+            }
+
+            return lstrVideo;
+        }
+
+        public string setParam(IFiltros pFiltros)
+        {
+            string lstrVideo = "";
+            List<paramDB> lParamDB = new List<paramDB>();
+
+            using (SqlConnection conn = new SqlConnection(strConn))
+            {
+                SqlCommand sql = new SqlCommand("UPDATE dcPARAM SET video = @video", conn);
+
+                sql.CommandType = CommandType.Text;
+                sql.Parameters.AddWithValue("@video", pFiltros.Video);
+
+                conn.Open();
+                sql.ExecuteNonQuery();
+                return "Foto actualizado.";
+            }
+        }
     }
 }

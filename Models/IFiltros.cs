@@ -16,6 +16,7 @@ namespace dcTimeAPI.Models
         public string bannerID { get; set; }
         public string texto { get; set; }
         public string Foto { get; set; }
+        public string Video { get; set; }
 
     }
 }
