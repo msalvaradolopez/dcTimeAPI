@@ -42,8 +42,9 @@ namespace dcTimeAPI.dataBase
                     string fechaCerrado = resultado["fechaCerrado"] == DBNull.Value ? "" : Convert.ToDateTime(resultado["fechaCerrado"]).ToString("yyyy/MM/dd HH:mm");
                     string empid = Convert.ToString(resultado["empID"]);
                     string nomSurtidor = resultado["firstName"] as string;
+                    string lastName = resultado["lastName"] as string;
                     string foto = resultado["foto"] as string;
-                    lPedidosDB.Add(new pedidosDB(folio, socio, estatus, fecha, slpname, fechaSurtiendo, fechaCerrado, empid, nomSurtidor, foto));
+                    lPedidosDB.Add(new pedidosDB(folio, socio, estatus, fecha, slpname, fechaSurtiendo, fechaCerrado, empid, nomSurtidor + " " + lastName , foto));
                 }
 
                 resultado.Close();
