@@ -17,10 +17,11 @@ namespace dcTimeAPI.Models
         public string firstName { get; set; }
         public string socio { get; set; }
         public string SlpName { get; set; }
+        public string empID { get; set; }
 
         public conGenerales() { }
 
-        public conGenerales(string pFolio, string pStatusText, string pFecha, string pPorSurtir, string pFechaSurtiendo, string pSurtiendo, string pFechaCerrado, string pFirstName, string pSocio, string pSlpName) {
+        public conGenerales(string pFolio, string pStatusText, string pFecha, string pPorSurtir, string pFechaSurtiendo, string pSurtiendo, string pFechaCerrado, string pFirstName, string pSocio, string pSlpName, string pEmpID) {
             folio = pFolio;
             statusText = pStatusText;
             fecha = pFecha;
@@ -31,6 +32,7 @@ namespace dcTimeAPI.Models
             firstName = pFirstName;
             socio = pSocio;
             SlpName = pSlpName;
+            empID = pEmpID;
         }
 
     }

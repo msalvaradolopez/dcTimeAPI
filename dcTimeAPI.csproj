@@ -176,6 +176,8 @@
     <Compile Include="Models\paramDB.cs" />
     <Compile Include="Models\pedidosDB.cs" />
     <Compile Include="Models\surtidoresDB.cs" />
+    <Compile Include="Models\tablaPedidosExt.cs" />
+    <Compile Include="Models\tablaSurtidoresExt.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

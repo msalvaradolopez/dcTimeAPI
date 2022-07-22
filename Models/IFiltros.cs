@@ -12,11 +12,13 @@ namespace dcTimeAPI.Models
         public string empID { get; set; }
         public int annio { get; set; }
         public int mes { get; set; }
-        public int dia { get; set; }
+        public string dia { get; set; }
         public string bannerID { get; set; }
         public string texto { get; set; }
         public string Foto { get; set; }
         public string Video { get; set; }
+        public List<int> diasList { get; set; }
+        public List<string> surtidoresList { get; set; }
 
     }
 }
