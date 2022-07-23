@@ -49,11 +49,12 @@ namespace dcTimeAPI.dataBase
                         string slpname = resultado["SlpName"] as string;
                         string fechaSurtiendo = resultado["fechaSurtiendo"] == DBNull.Value ? "" : Convert.ToDateTime(resultado["fechaSurtiendo"]).ToString("yyyy/MM/dd HH:mm");
                         string fechaCerrado = resultado["fechaCerrado"] == DBNull.Value ? "" : Convert.ToDateTime(resultado["fechaCerrado"]).ToString("yyyy/MM/dd HH:mm");
+                        string fechaEntregado = resultado["fechaEntregado"] == DBNull.Value ? "" : Convert.ToDateTime(resultado["fechaEntregado"]).ToString("yyyy/MM/dd HH:mm");
                         string empid = Convert.ToString(resultado["empID"]);
                         string nomSurtidor = resultado["firstName"] as string;
                         string lastName = resultado["lastName"] as string;
                         string foto = resultado["foto"] as string;
-                        lPedidosDB.Add(new pedidosDB(folio, socio, estatus, fecha, slpname, fechaSurtiendo, fechaCerrado, empid, nomSurtidor + " " + lastName, foto));
+                        lPedidosDB.Add(new pedidosDB(folio, socio, estatus, fecha, slpname, fechaSurtiendo, fechaCerrado, empid, nomSurtidor + " " + lastName, foto, fechaEntregado));
                     }
 
                     resultado.Close();
@@ -134,19 +135,61 @@ namespace dcTimeAPI.dataBase
 
             using (SqlConnection conn = new SqlConnection(strConn))
             {
-                SqlCommand sql = new SqlCommand("update dcPEDIDOS set fechaCerrado = @fechaCerrado, " +
+                try
+                {
+                    SqlCommand sql = new SqlCommand("update dcPEDIDOS set fechaCerrado = @fechaCerrado, " +
+                                                "                     estatus = '4', " +
+                                                "                       empID = @empID " +
+                                                "where folio = @folio ", conn);
+
+                    sql.CommandType = CommandType.Text;
+                    sql.Parameters.AddWithValue("@fechaCerrado", ldtFechaActual);
+                    sql.Parameters.AddWithValue("@empID", filtros.empID);
+                    sql.Parameters.AddWithValue("@folio", filtros.folio);
+
+                    conn.Open();
+                    sql.ExecuteNonQuery();
+                    return "Surtimiento Cerrado.";
+                }
+                catch (Exception e)
+                {
+
+                    throw;
+                }
+                
+            }
+        }
+
+        public string setEntregado(IFiltros filtros)
+        {
+            DateTime ldtFechaActual = DateTime.Now;
+
+            List<pedidosDB> lPedidosDB = new List<pedidosDB>();
+
+            using (SqlConnection conn = new SqlConnection(strConn))
+            {
+                try
+                {
+                    SqlCommand sql = new SqlCommand("update dcPEDIDOS set fechaEntregado = @fechaEntregado, " +
                                                 "                     estatus = '3', " +
                                                 "                       empID = @empID " +
                                                 "where folio = @folio ", conn);
 
-                sql.CommandType = CommandType.Text;
-                sql.Parameters.AddWithValue("@fechaCerrado", ldtFechaActual);
-                sql.Parameters.AddWithValue("@empID", filtros.empID);
-                sql.Parameters.AddWithValue("@folio", filtros.folio);
+                    sql.CommandType = CommandType.Text;
+                    sql.Parameters.AddWithValue("@fechaEntregado", ldtFechaActual);
+                    sql.Parameters.AddWithValue("@empID", filtros.empID);
+                    sql.Parameters.AddWithValue("@folio", filtros.folio);
 
-                conn.Open();
-                sql.ExecuteNonQuery();
-                return "Surtimiento Cerrado.";
+                    conn.Open();
+                    sql.ExecuteNonQuery();
+                    return "Surtimiento Entregado.";
+                }
+                catch (Exception)
+                {
+
+                    throw;
+                }
+                
             }
         }
 

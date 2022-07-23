@@ -20,6 +20,9 @@ CREATE TABLE dcPEDIDOS (
 )
 go
 
+ALTER TABLE dcPEDIDOS
+	ADD fechaEntregado datetime null
+
 create table dcSURTIDOR (
 	empID int NOT NULL,
 	lastName nvarchar(100) NULL, 

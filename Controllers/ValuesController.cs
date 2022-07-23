@@ -48,6 +48,16 @@ namespace dcTimeAPI.Controllers
 
         [AcceptVerbs("POST")]
         [HttpPost()]
+        [Route("setEntregado")]
+        public string setEntregado([FromBody] IFiltros pFiltros)
+        {
+            conexiones lConexiones = new conexiones();
+            return lConexiones.setEntregado(pFiltros);
+
+        }
+
+        [AcceptVerbs("POST")]
+        [HttpPost()]
         [Route("getSurtidores")]
         public IEnumerable<object> getSurtidores([FromBody] IFiltros pFiltros)
         {
