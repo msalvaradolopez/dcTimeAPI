@@ -23,7 +23,7 @@ namespace dcTimeAPI.Controllers
         public IEnumerable<object> getPedidos([FromBody] IFiltros pFiltros)
         {
             conexiones lConexiones = new conexiones();
-            return lConexiones.getPedidos();
+            return lConexiones.getPedidos(pFiltros);
         }
 
         [AcceptVerbs("POST")]
@@ -130,11 +130,20 @@ namespace dcTimeAPI.Controllers
 
         [AcceptVerbs("POST")]
         [HttpPost()]
-        [Route("setFoto")]
-        public string setFoto([FromBody] IFiltros pFiltros)
+        [Route("insFoto")]
+        public string insFoto([FromBody] IFiltros pFiltros)
         {
             conexiones lConexiones = new conexiones();
-            return lConexiones.setFoto(pFiltros);
+            return lConexiones.insFoto(pFiltros);
+        }
+
+        [AcceptVerbs("POST")]
+        [HttpPost()]
+        [Route("updFoto")]
+        public string updFoto([FromBody] IFiltros pFiltros)
+        {
+            conexiones lConexiones = new conexiones();
+            return lConexiones.updFoto(pFiltros);
         }
 
         [AcceptVerbs("GET")]

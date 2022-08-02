@@ -9,6 +9,9 @@ namespace dcTimeAPI.Models
     {
         public string claUN { get; set; }
         public string folio { get; set; }
+        public string socio { get; set; }
+        public DateTime fecha { get; set; }
+        public string SlpName { get; set; }
         public string empID { get; set; }
         public int annio { get; set; }
         public int mes { get; set; }
