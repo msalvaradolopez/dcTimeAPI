@@ -454,8 +454,9 @@ namespace dcTimeAPI.dataBase
                         string lMostrador = Convert.ToInt16(resultado["mostrador"]).ToString();
                         string lTotal = Convert.ToInt16(resultado["total"]).ToString();
                         string lDescArticulo = resultado["descArticulo"] as string;
+                        string lnumArticulo = resultado["articulo"] as string;
 
-                        lconGenerales.Add(new conGenerales(lfolio, lstatusText, lfecha, lporSurtir, lfechaSurtiendo, lsurtiendo, lfechaCerrado, lfirstName, lsocio, lSlpName, lEmpID, lMostrador, lTotal, lDescArticulo));
+                        lconGenerales.Add(new conGenerales(lfolio, lstatusText, lfecha, lporSurtir, lfechaSurtiendo, lsurtiendo, lfechaCerrado, lfirstName, lsocio, lSlpName, lEmpID, lMostrador, lTotal, lDescArticulo, "0", lnumArticulo));
                     }
 
                     resultado.Close();
@@ -477,6 +478,95 @@ namespace dcTimeAPI.dataBase
                 if (ldiaSiNo && lsurtidorSiNo)
                     lconFinal.Add(renglon);
             } );
+
+            return lconFinal;
+        }
+
+        public List<conGenerales> getConByPedidos(IFiltros filtros)
+        {
+
+            List<conGenerales> lconGenerales = new List<conGenerales>();
+            List<conGenerales> lconFinal = new List<conGenerales>();
+
+            using (SqlConnection conn = new SqlConnection(strConn))
+            {
+                try
+                {
+
+
+                    SqlCommand sql = new SqlCommand(" SELECT dcPEDIDOS.folio, " +
+                                                     " statusText = CASE WHEN dcPEDIDOS.estatus = '2' THEN 'Surtiendo' " +
+                                                     "               WHEN dcPEDIDOS.estatus = '3' THEN 'Mostrador' " +
+                                                     "               WHEN dcPEDIDOS.estatus = '4' THEN 'Cerrado' END, " +
+                                                     " dcPEDIDOS.fecha, " +
+                                                     " porSurtir = ISNULL(DATEDIFF(mi, fecha, fechaSurtiendo), 0), " +
+                                                    " dcPEDIDOS.fechaSurtiendo, " +
+                                                    " surtiendo = ISNULL(DATEDIFF(mi, fechaSurtiendo, fechaEntregado), 0), " +
+                                                    " dcPEDIDOS.fechaEntregado, " +
+                                                    " mostrador = ISNULL(DATEDIFF(mi, fechaEntregado, fechaCerrado), 0), " +
+                                                    " dcPEDIDOS.fechaCerrado, " +
+                                                    " total = ISNULL(DATEDIFF(mi, fecha, fechaCerrado), 0), " +
+                                                    " ctdPtds = ISNULL((SELECT COUNT(1) " +
+                                                    "                   FROM [@SO1_01VENTA] V WITH(NOLOCK) " +
+                                                    "                           INNER JOIN [@SO1_01VENTADETALLE] VD WITH(NOLOCK) ON VD.U_SO1_FOLIO = V.Name " +
+                                                    "                   WHERE  V.Name = dcPEDIDOS.folio), 0), " +
+                                                    " OHEM.firstName + ' ' + OHEM.lastName as nomSurtidor, " +
+                                                    " dcPEDIDOS.socio,  " +
+                                                    " dcPEDIDOS.SlpName,  " +
+                                                    " dcPEDIDOS.empID " +
+                                                    " FROM dcPEDIDOS WITH(NOLOCK) INNER JOIN dbo.OHEM WITH(NOLOCK) ON OHEM.empID = dcPEDIDOS.empID " +
+                                                    " WHERE dcPEDIDOS.estatus > 1 " +
+                                                    "    AND DATEPART(YEAR, fecha) = @ANNIO " +
+                                                    "     AND DATEPART(MONTH, fecha) = @MES " +
+                                                    " ORDER BY total DESC, dcPEDIDOS.folio ASC ", conn);
+
+                    sql.CommandType = CommandType.Text;
+                    sql.Parameters.AddWithValue("@ANNIO", filtros.annio);
+                    sql.Parameters.AddWithValue("@MES", filtros.mes);
+
+                    conn.Open();
+                    SqlDataReader resultado = sql.ExecuteReader();
+
+                    while (resultado.Read())
+                    {
+                        string lfolio = resultado["folio"] as string;
+                        string lstatusText = resultado["statusText"] as string;
+                        string lfecha = Convert.ToDateTime(resultado["fecha"]).ToString("yyyy/MM/dd HH:mm");
+                        string lporSurtir = Convert.ToInt16(resultado["porSurtir"]).ToString();
+                        string lfechaSurtiendo = resultado["fechaSurtiendo"] == DBNull.Value ? null : Convert.ToDateTime(resultado["fechaSurtiendo"]).ToString("yyyy/MM/dd HH:mm");
+                        string lsurtiendo = Convert.ToInt16(resultado["surtiendo"]).ToString();
+                        string lfechaCerrado = resultado["fechaCerrado"] == DBNull.Value ? null : Convert.ToDateTime(resultado["fechaCerrado"]).ToString("yyyy/MM/dd HH:mm");
+                        string lfirstName = resultado["nomSurtidor"] as string;
+                        string lsocio = resultado["socio"] as string;
+                        string lSlpName = resultado["SlpName"] as string;
+                        string lEmpID = Convert.ToString(resultado["empID"]);
+                        string lMostrador = Convert.ToInt16(resultado["mostrador"]).ToString();
+                        string lTotal = Convert.ToInt16(resultado["total"]).ToString();
+                        string lDescArticulo = "";
+                        string lctdPdts = Convert.ToInt16(resultado["ctdPtds"]).ToString();
+
+                        lconGenerales.Add(new conGenerales(lfolio, lstatusText, lfecha, lporSurtir, lfechaSurtiendo, lsurtiendo, lfechaCerrado, lfirstName, lsocio, lSlpName, lEmpID, lMostrador, lTotal, lDescArticulo, lctdPdts, ""));
+                    }
+
+                    resultado.Close();
+
+
+                }
+                catch (Exception e)
+                {
+
+                    throw;
+                }
+
+
+            }
+
+            lconGenerales.ForEach(renglon => {
+                bool ldiaSiNo = filtros.diasList.Any(x => x == Convert.ToDateTime(renglon.fecha).Day || x == 0);
+                bool lsurtidorSiNo = filtros.surtidoresList.Any(x => x == renglon.empID || x == "0");
+                if (ldiaSiNo && lsurtidorSiNo)
+                    lconFinal.Add(renglon);
+            });
 
             return lconFinal;
         }

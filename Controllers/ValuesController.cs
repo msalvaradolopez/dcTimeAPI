@@ -121,6 +121,15 @@ namespace dcTimeAPI.Controllers
 
         [AcceptVerbs("POST")]
         [HttpPost()]
+        [Route("getConByPedidos")]
+        public IEnumerable<object> getConByPedidos([FromBody] IFiltros pFiltros)
+        {
+            conexiones lConexiones = new conexiones();
+            return lConexiones.getConByPedidos(pFiltros);
+        }
+
+        [AcceptVerbs("POST")]
+        [HttpPost()]
         [Route("getConGeneral")]
         public IEnumerable<object> getConGeneral([FromBody] IFiltros pFiltros)
         {

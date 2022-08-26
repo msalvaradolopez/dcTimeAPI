@@ -21,11 +21,13 @@ namespace dcTimeAPI.Models
         public string mostrador { get; set; }
         public string total { get; set; }
         public string descArticulo { get; set; }
-
+        public string ctdPtds { get; set; }
+        public string numArticulo { get; set; }
         public conGenerales() { }
 
         public conGenerales(string pFolio, string pStatusText, string pFecha, string pPorSurtir, string pFechaSurtiendo, string pSurtiendo, 
-                            string pFechaCerrado, string pFirstName, string pSocio, string pSlpName, string pEmpID, string pMostrador, string pTotal, string pDescArticulo) {
+                            string pFechaCerrado, string pFirstName, string pSocio, string pSlpName, string pEmpID, string pMostrador, 
+                            string pTotal, string pDescArticulo, string pCtdPtds, string pNumArticulo) {
             folio = pFolio;
             statusText = pStatusText;
             fecha = pFecha;
@@ -40,6 +42,8 @@ namespace dcTimeAPI.Models
             mostrador = pMostrador;
             total = pTotal;
             descArticulo = pDescArticulo;
+            ctdPtds = pCtdPtds;
+            numArticulo = pNumArticulo;
         }
 
     }
