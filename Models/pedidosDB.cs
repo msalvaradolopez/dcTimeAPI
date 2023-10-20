@@ -18,9 +18,11 @@ namespace dcTimeAPI.Models
         public string empID { get; set; }
         public string NomSurtidor { get; set; }
         public string Foto { get; set; }
+        public string Origen { get; set; }
 
         public pedidosDB() { }
-        public pedidosDB(string folio, string socio, string estatus, string fecha, string slpname, string fechaSurtiendo, string fechaCerrado, string empid, string nomSurtidor, string foto, string pFechaEntregado) {
+        public pedidosDB(string folio, string socio, string estatus, string fecha, string slpname, string fechaSurtiendo, 
+                            string fechaCerrado, string empid, string nomSurtidor, string foto, string pFechaEntregado, string pOrigen) {
             Folio = folio;
             Socio = socio;
             Estatus = estatus;
@@ -32,6 +34,7 @@ namespace dcTimeAPI.Models
             NomSurtidor = nomSurtidor;
             Foto = foto;
             FechaEntregado = pFechaEntregado;
+            Origen = pOrigen;
     }
     }
 }

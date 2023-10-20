@@ -22,6 +22,7 @@ namespace dcTimeAPI.Models
         public string Video { get; set; }
         public List<int> diasList { get; set; }
         public List<string> surtidoresList { get; set; }
+        public string origen { get; set; }
 
     }
 }

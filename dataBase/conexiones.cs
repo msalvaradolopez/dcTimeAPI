@@ -6,6 +6,7 @@ using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
 using dcTimeAPI.Models;
+using System.Web.Configuration;
 
 namespace dcTimeAPI.dataBase
 {
@@ -13,8 +14,11 @@ namespace dcTimeAPI.dataBase
     {
         private string strConn;
         private string strConnExt;
+        private string _branch; // id Sucursal en SAP es la tabla OUBR
+
         public conexiones() {
             strConn = ConfigurationManager.ConnectionStrings["sqlServer"].ConnectionString;
+            _branch = WebConfigurationManager.AppSettings["branch"];
         }
 
         public List<pedidosDB> getPedidos(IFiltros pFiltros) {
@@ -43,14 +47,17 @@ namespace dcTimeAPI.dataBase
                                                          " empID = NULL, " +
                                                          " firstName = NULL, " +
                                                          " lastName = NULL, " +
-                                                         " foto = NULL " +
+                                                         " foto = NULL, " +
+                                                         " origen = CASE WHEN UPPER(V.U_SO1_COMENTARIO) LIKE '%CAJA%' THEN 'C'  " +
+                                                         "               WHEN UPPER(V.U_SO1_COMENTARIO) LIKE '%REPARTO%' THEN 'R'  " +
+                                                         "               ELSE 'X' END  " +
                                                          " FROM dbo.[@SO1_01VENTA] V WITH(NOLOCK) " +
                                                                " JOIN dbo.OSLP WITH(NOLOCK) ON OSLP.SlpCode = V.U_SO1_VENDEDOR " +
                                                                " JOIN dbo.OCRD WITH(NOLOCK) ON OCRD.CardCode = V.U_SO1_CLIENTE " +
                                                          " WHERE CONVERT(VARCHAR(10), V.U_SO1_FECHA, 112) = CONVERT(VARCHAR(10), @fechaActual, 112) " +
                                                                " AND V.U_SO1_TIPO = 'PE' " +
                                                                " AND NOT EXISTS(SELECT 1 FROM dcPEDIDOS T1 WHERE T1.folio = V.Name) " +
-                                                               " AND(UPPER(V.U_SO1_COMENTARIO) LIKE '%MOSTRADOR%' OR V.U_SO1_COMENTARIO LIKE '%CAJA%') " +
+                                                               " AND(V.U_SO1_COMENTARIO LIKE '%CAJA%' OR V.U_SO1_COMENTARIO LIKE '%REPARTO%') " +
                                                         " UNION ALL " +
                                                         " SELECT folio, " +
                                                                 " Socio, " +
@@ -63,7 +70,8 @@ namespace dcTimeAPI.dataBase
                                                                 " empID = dcPEDIDOS.empID, " +
                                                                 " firstName = OHEM.firstName, " +
                                                                 " lastName = OHEM.lastName, " +
-                                                                " foto = dcSURTIDOR.foto" +
+                                                                " foto = dcSURTIDOR.foto, " +
+                                                                " origen = dcPEDIDOS.origen" +
                                                         " FROM dcPEDIDOS INNER JOIN dbo.OHEM WITH(NOLOCK) ON OHEM.empID = dcPEDIDOS.empID" +
                                                                         " LEFT JOIN dcSURTIDOR WITH(NOLOCK) ON dcSURTIDOR.empID = dcPEDIDOS.empID" +
                                                         " WHERE CONVERT(VARCHAR(10), fecha, 112) = CONVERT(VARCHAR(10), @fechaActual, 112)  ", conn);
@@ -88,7 +96,8 @@ namespace dcTimeAPI.dataBase
                         string nomSurtidor = resultado["firstName"] as string;
                         string lastName = resultado["lastName"] as string;
                         string foto = resultado["foto"] as string;
-                        lPedidosDB.Add(new pedidosDB(folio, socio, estatus, fecha, slpname, fechaSurtiendo, fechaCerrado, empid, nomSurtidor + " " + lastName, foto, fechaEntregado));
+                        string origen = resultado["origen"] as string;
+                        lPedidosDB.Add(new pedidosDB(folio, socio, estatus, fecha, slpname, fechaSurtiendo, fechaCerrado, empid, nomSurtidor + " " + lastName, foto, fechaEntregado, origen));
                     }
 
                     resultado.Close();
@@ -107,14 +116,16 @@ namespace dcTimeAPI.dataBase
 
         public string setSurtiendo(IFiltros filtros)
         {
-            DateTime ldtFechaActual = DateTime.Now;
+
+            DateTimeOffset ldtFechaActual = DateTimeOffset.Now; // DateTime.Now;
+            TimeZoneInfo tz = TimeZoneInfo.Local; // getting the current system timezone
 
             List<pedidosDB> lPedidosDB = new List<pedidosDB>();
 
             using (SqlConnection conn = new SqlConnection(strConn))
             {
-                SqlCommand sql = new SqlCommand("INSERT INTO dcPEDIDOS(folio, socio, fecha, SlpName, estatus, fechaSurtiendo, empID) " +
-                                                " VALUES(@folio, @socio, @fecha, @SlpName, @estatus, @fechaSurtiendo, @empID)", conn);
+                SqlCommand sql = new SqlCommand("INSERT INTO dcPEDIDOS(folio, socio, fecha, SlpName, estatus, fechaSurtiendo, empID, origen) " +
+                                                " VALUES(@folio, @socio, @fecha, @SlpName, @estatus, @fechaSurtiendo, @empID, @origen)", conn);
 
                 sql.CommandType = CommandType.Text;
                 sql.Parameters.AddWithValue("@folio", filtros.folio);
@@ -124,6 +135,7 @@ namespace dcTimeAPI.dataBase
                 sql.Parameters.AddWithValue("@estatus", "2");
                 sql.Parameters.AddWithValue("@fechaSurtiendo", ldtFechaActual);
                 sql.Parameters.AddWithValue("@empID", filtros.empID);
+                sql.Parameters.AddWithValue("@origen", filtros.origen);
 
                 conn.Open();
                 sql.ExecuteNonQuery();
@@ -142,9 +154,10 @@ namespace dcTimeAPI.dataBase
                 SqlCommand sql = new SqlCommand("select empID = OHEM.empID, lastName = OHEM.lastName, firstName = OHEM.firstName, middleName = OHEM.middleName, foto = dcSURTIDOR.foto  " +
                                                 "               from dbo.OHEM WITH(NOLOCK) " +
                                                 "                       LEFT JOIN dcSURTIDOR WITH (NOLOCK) ON dcSURTIDOR.empID = OHEM.empID " +
-                                                "               WHERE OHEM.position = 32 and OHEM.branch = 1 ", conn);
+                                                "               WHERE OHEM.position = 32 AND OHEM.branch = @branch AND OHEM.Active = 'Y'", conn);
 
                 sql.CommandType = CommandType.Text;
+                sql.Parameters.AddWithValue("@branch", _branch);
 
                 conn.Open();
                 SqlDataReader resultado = sql.ExecuteReader();
@@ -168,7 +181,7 @@ namespace dcTimeAPI.dataBase
 
         public string setCerrado(IFiltros filtros)
         {
-            DateTime ldtFechaActual = DateTime.Now;
+            DateTimeOffset ldtFechaActual = DateTimeOffset.Now; // DateTime.Now;
 
             List<pedidosDB> lPedidosDB = new List<pedidosDB>();
 
@@ -201,7 +214,7 @@ namespace dcTimeAPI.dataBase
 
         public string setEntregado(IFiltros filtros)
         {
-            DateTime ldtFechaActual = DateTime.Now;
+            DateTimeOffset ldtFechaActual = DateTimeOffset.Now; // DateTime.Now;
 
             List<pedidosDB> lPedidosDB = new List<pedidosDB>();
 
@@ -421,7 +434,10 @@ namespace dcTimeAPI.dataBase
                                                  " OHEM.firstName + ' ' + OHEM.lastName as nomSurtidor, " +
                                                  " dcPEDIDOS.socio, " +
                                                  " dcPEDIDOS.SlpName, " +
-                                                 " dcPEDIDOS.empID " +
+                                                 " dcPEDIDOS.empID, " +
+                                                 " origen = CASE WHEN dcPEDIDOS.origen = 'C' THEN 'CAJA'" +
+                                                 "               WHEN dcPEDIDOS.origen = 'R' THEN 'REPARTO'" +
+                                                 "               ELSE 'OTROS' END" +
                                                  " FROM dcPEDIDOS  WITH(NOLOCK) INNER JOIN dbo.OHEM WITH(NOLOCK) ON OHEM.empID = dcPEDIDOS.empID " +
                                                  "      INNER JOIN[@SO1_01VENTA] V WITH(NOLOCK) ON V.Name = dcPEDIDOS.folio " +
                                                  "      INNER JOIN[@SO1_01VENTADETALLE] VD WITH(NOLOCK) ON VD.U_SO1_FOLIO = V.Name " +
@@ -455,8 +471,10 @@ namespace dcTimeAPI.dataBase
                         string lTotal = Convert.ToInt16(resultado["total"]).ToString();
                         string lDescArticulo = resultado["descArticulo"] as string;
                         string lnumArticulo = resultado["articulo"] as string;
+                        string lOrigen = resultado["origen"] as string;
 
-                        lconGenerales.Add(new conGenerales(lfolio, lstatusText, lfecha, lporSurtir, lfechaSurtiendo, lsurtiendo, lfechaCerrado, lfirstName, lsocio, lSlpName, lEmpID, lMostrador, lTotal, lDescArticulo, "0", lnumArticulo));
+                        lconGenerales.Add(new conGenerales(lfolio, lstatusText, lfecha, lporSurtir, lfechaSurtiendo, lsurtiendo, lfechaCerrado, lfirstName, lsocio, 
+                                                            lSlpName, lEmpID, lMostrador, lTotal, lDescArticulo, "0", lnumArticulo, lOrigen));
                     }
 
                     resultado.Close();
@@ -513,7 +531,10 @@ namespace dcTimeAPI.dataBase
                                                     " OHEM.firstName + ' ' + OHEM.lastName as nomSurtidor, " +
                                                     " dcPEDIDOS.socio,  " +
                                                     " dcPEDIDOS.SlpName,  " +
-                                                    " dcPEDIDOS.empID " +
+                                                    " dcPEDIDOS.empID, " +
+                                                    " origen = CASE WHEN dcPEDIDOS.origen = 'C' THEN 'CAJA'" +
+                                                    "               WHEN dcPEDIDOS.origen = 'R' THEN 'REPARTO'" +
+                                                    "               ELSE 'OTROS' END" +
                                                     " FROM dcPEDIDOS WITH(NOLOCK) INNER JOIN dbo.OHEM WITH(NOLOCK) ON OHEM.empID = dcPEDIDOS.empID " +
                                                     " WHERE dcPEDIDOS.estatus > 1 " +
                                                     "    AND DATEPART(YEAR, fecha) = @ANNIO " +
@@ -544,8 +565,10 @@ namespace dcTimeAPI.dataBase
                         string lTotal = Convert.ToInt16(resultado["total"]).ToString();
                         string lDescArticulo = "";
                         string lctdPdts = Convert.ToInt16(resultado["ctdPtds"]).ToString();
+                        string lOrigen = resultado["origen"] as string;
 
-                        lconGenerales.Add(new conGenerales(lfolio, lstatusText, lfecha, lporSurtir, lfechaSurtiendo, lsurtiendo, lfechaCerrado, lfirstName, lsocio, lSlpName, lEmpID, lMostrador, lTotal, lDescArticulo, lctdPdts, ""));
+                        lconGenerales.Add(new conGenerales(lfolio, lstatusText, lfecha, lporSurtir, lfechaSurtiendo, lsurtiendo, lfechaCerrado, lfirstName, lsocio, 
+                                                            lSlpName, lEmpID, lMostrador, lTotal, lDescArticulo, lctdPdts, "", lOrigen));
                     }
 
                     resultado.Close();
