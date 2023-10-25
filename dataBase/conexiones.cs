@@ -34,7 +34,16 @@ namespace dcTimeAPI.dataBase
 
                 try
                 {
-                    SqlCommand sql = new SqlCommand("SELECT V.Name [folio], " +
+                    SqlCommand sql = new SqlCommand("WITH VENTAS AS ( " +
+                                                        "SELECT * " +
+                                                        "FROM dbo.[@SO1_01VENTA] VTA WITH(NOLOCK) " +
+                                                        "WHERE CONVERT(VARCHAR(8), VTA.U_SO1_FECHA, 112) = CONVERT(VARCHAR(8), @fechaActual, 112) " +
+                                                        "AND(VTA.U_SO1_COMENTARIO LIKE '%CAJA%' OR VTA.U_SO1_COMENTARIO LIKE '%REPARTO%') ), " +
+                                                        " PEDIDOS AS( " +
+                                                        "SELECT * " +
+                                                        "FROM dcPEDIDOS " +
+                                                        "WHERE CONVERT(VARCHAR(8), fecha, 112) = CONVERT(VARCHAR(8), @fechaActual, 112) )" +
+                                                        "SELECT V.Name [folio], " +
                                                          " OCRD.CardName[Socio], " +
                                                          " estatus = '1', " +
                                                          " CONVERT(DATETIME, SUBSTRING(CONVERT(VARCHAR(10), V.U_SO1_FECHA, 103), 1, 10) + ' ' + " +
@@ -51,13 +60,12 @@ namespace dcTimeAPI.dataBase
                                                          " origen = CASE WHEN UPPER(V.U_SO1_COMENTARIO) LIKE '%CAJA%' THEN 'C'  " +
                                                          "               WHEN UPPER(V.U_SO1_COMENTARIO) LIKE '%REPARTO%' THEN 'R'  " +
                                                          "               ELSE 'X' END  " +
-                                                         " FROM dbo.[@SO1_01VENTA] V WITH(NOLOCK) " +
+                                                         " FROM VENTAS V WITH(NOLOCK) " +
                                                                " JOIN dbo.OSLP WITH(NOLOCK) ON OSLP.SlpCode = V.U_SO1_VENDEDOR " +
                                                                " JOIN dbo.OCRD WITH(NOLOCK) ON OCRD.CardCode = V.U_SO1_CLIENTE " +
-                                                         " WHERE CONVERT(VARCHAR(10), V.U_SO1_FECHA, 112) = CONVERT(VARCHAR(10), @fechaActual, 112) " +
-                                                               " AND V.U_SO1_TIPO = 'PE' " +
+                                                         " WHERE " +
+                                                               " V.U_SO1_TIPO = 'PE' " +
                                                                " AND NOT EXISTS(SELECT 1 FROM dcPEDIDOS T1 WHERE T1.folio = V.Name) " +
-                                                               " AND(V.U_SO1_COMENTARIO LIKE '%CAJA%' OR V.U_SO1_COMENTARIO LIKE '%REPARTO%') " +
                                                         " UNION ALL " +
                                                         " SELECT folio, " +
                                                                 " Socio, " +
@@ -72,9 +80,8 @@ namespace dcTimeAPI.dataBase
                                                                 " lastName = OHEM.lastName, " +
                                                                 " foto = dcSURTIDOR.foto, " +
                                                                 " origen = dcPEDIDOS.origen" +
-                                                        " FROM dcPEDIDOS INNER JOIN dbo.OHEM WITH(NOLOCK) ON OHEM.empID = dcPEDIDOS.empID" +
-                                                                        " LEFT JOIN dcSURTIDOR WITH(NOLOCK) ON dcSURTIDOR.empID = dcPEDIDOS.empID" +
-                                                        " WHERE CONVERT(VARCHAR(10), fecha, 112) = CONVERT(VARCHAR(10), @fechaActual, 112)  ", conn);
+                                                        " FROM PEDIDOS dcPEDIDOS INNER JOIN dbo.OHEM WITH(NOLOCK) ON OHEM.empID = dcPEDIDOS.empID" +
+                                                                        " LEFT JOIN dcSURTIDOR WITH(NOLOCK) ON dcSURTIDOR.empID = dcPEDIDOS.empID" , conn);
 
                     sql.CommandType = CommandType.Text;
                     sql.Parameters.AddWithValue("@fechaActual", ldtFechaActual);
